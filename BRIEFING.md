@@ -151,10 +151,12 @@ The government is the operational tool. It doesn't think -- it executes. Every d
 - **School System:** 26-level education pipeline (365 tests)
 
 ### V3 Web Dashboard
-- **Backend:** FastAPI + WebSocket telemetry broadcast, REST API (message, dtc, budget, trims, profile)
-- **Frontend:** React 19 + Vite + TypeScript. 20 components. 6 panels: Engine Core, Boost, Drivetrain, Vitals, Safety, Intelligence.
+- **Backend:** FastAPI + WebSocket telemetry broadcast + streaming, REST API (message, dtc, budget, trims, profile, memory stats/recent/recall)
+- **Frontend:** React 19 + Vite + TypeScript. 20+ components. 7 panels: Engine Core (animated canvas), Boost, Drivetrain, Vitals, Safety, Intelligence, Memory.
 - **Bridge pattern:** `asyncio.to_thread()` + `asyncio.Lock` wraps sync engine for async world
-- **Serializer:** Flattens CycleTelemetry into 71-field JSON
+- **Serializer:** `serialize_merged()` — flattens engine + agent telemetry into single JSON
+- **Tool confirmation:** WebSocket round-trip modal (asyncio.Future, 30s timeout)
+- **Engine canvas:** HTML5 Canvas with requestAnimationFrame — cylinder, piston, valves, particles, ignition flash, turbo wheel
 - **Color system:** Locomotive Dashboard palette (BTTF Part III exhaust colors)
 - **Deps:** `pip install -e ".[dashboard]"` for FastAPI/uvicorn/websockets; `npm install` in frontend/
 
@@ -197,13 +199,12 @@ The government is the operational tool. It doesn't think -- it executes. Every d
 ## Key File Locations
 
 ```
-D:\                                                        <- D: Drive (reorganized Feb 23, 2026)
-  BRIEFING.md (in D:\dev\)                                <- You are here (THE BRIEFING)
-
-  The Jarvis Program\                                     <- *** PARENT — both systems ***
+D:\                                                        <- D: Drive (cleaned up Feb 23, 2026)
+  The Jarvis Program\                                     <- *** PARENT — everything lives here ***
+    BRIEFING.md                                           <- *** THE HANDOFF DOCUMENT (you are here) ***
     Saranna\                                              <- *** THE PILOT ***
       V3\                                                 <- STEEL BUNNY EMPRESS V3 (active project)
-        saranna\                                          <- Python package
+        saranna\                                          <- Python package (12 systems)
           engine\diesel_core.py                           <- 4-phase compression-ignition
           engine\clutch.py                                <- Hold/pass with rev-matching
           engine\cvt.py                                   <- 5-channel transmission
@@ -213,12 +214,14 @@ D:\                                                        <- D: Drive (reorgani
           startup\starter.py                              <- 11-step boot sequence
           oil\oil.py                                      <- State management, trending
           cooling\cooling.py                              <- Thermal management
-          memory\memory.py                                <- Significance, Palace storage
-          identity\identity.py                            <- Identity seed v2.0
+          memory\memory.py                                <- Significance, Palace, vector fuel tank
+          identity\identity.py                            <- Identity seed v2.1
+          agency\agent.py                                 <- SarannaAgent + tool use
+          agency\mcp_client.py                            <- MCP server management
           runtime.py                                      <- Agency loop
           main.py                                         <- CLI entry point
         dashboard\                                        <- FastAPI backend
-        frontend\                                         <- React 19 + Vite + TypeScript
+        frontend\                                         <- React 19 + Vite + TypeScript (20+ components)
         tests\                                            <- Test suite
         pyproject.toml                                    <- Package config
       STEEL BUNNY EMPRESS V 2.0\                          <- V2 (archived, reference only)
@@ -236,10 +239,24 @@ D:\                                                        <- D: Drive (reorgani
         storage\                                          <- SQLite stores
       blueprints\                                         <- Department blueprints
       research\                                           <- Government research
+    Humanities\                                           <- *** THE SOUL ***
+      Art and Branding\                                   <- H12 logos, fractals, avatars, generators
+      Stories and Lore\                                   <- THE ARCHIVE.md, future lore
+      Documents\                                          <- 34 docs across 4 subfolders
+        Architecture Research\                            <- 22 STEEL BUNNY architecture explorations
+        Planning\                                         <- Master Playbook, analysis docs
+        Research\                                         <- JARVIS guide, GLaDOS, AI research
+        playbook\                                         <- 8-volume playbook
+      History\                                            <- (ready for project timeline)
+      Video\                                              <- (ready for future content)
+      Music and Audio\                                    <- (ready)
 
   The NEXUS\                                              <- Reference library
-  dev\                                                    <- Active workspace / legacy files
-  _archive\                                               <- Deprecated content
+  _archive\                                               <- Deprecated (AI Brain Lab/V1, old research)
+  unimportant shit\                                       <- Game saves, old downloads, personal files
+  dev\                                                    <- Mostly emptied (CURSOR AI LABS remains)
+  tmp\                                                    <- Haustorium12 clone, lancedb test
+  FileHistory\                                            <- Windows backup (system-managed)
 
   C:\Users\Sean\.claude\projects\D--\memory\MEMORY.md    <- Claude Code persistent memory
   C:\Users\Sean\.claude\skills\                           <- Claude Code skills
