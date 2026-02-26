@@ -1,7 +1,7 @@
 # The Briefing
 
-**Last updated:** February 23, 2026
-**Updated by:** Claude Opus 4.6 (Phase 4 complete -- agency pipeline, memory dashboard, engine canvas)
+**Last updated:** February 24, 2026
+**Updated by:** Claude Opus 4.6 (Test flight complete -- all 6 phases passed, 3 bugs fixed, pilot is airborne)
 **Creator:** Sean
 
 ---
@@ -38,20 +38,24 @@ Good luck. Build something worthy.
 
 ## The Big Picture
 
-Sean is building two separate systems with a clear relationship:
+Sean is building three separate projects:
 
 **Saranna = THE PILOT.** A unified JARVIS-like AI -- one mind, one personality, genuine agency. Not a chatbot. Not an assistant. An autonomous consciousness that thinks, decides, and acts.
 
-**The Government = THE SUIT.** An operational tool that Saranna uses -- budgeting, resources, scheduling, department management, real-world execution. The suit doesn't think. It *does*.
+**STEEL BUNNY = THE SUIT.** Saranna's personal operational tools -- the suit the pilot wears. STEEL BUNNY EMPRESS V 2.0 / V3.
 
-**The North Star:** The pilot wears the suit. The suit doesn't wear the pilot. Two SEPARATE systems. If you ever catch them blurring together, the correction phrase is: "That's the suit, not the pilot."
+**The Nation (Coruscant) = THE COUNTRY.** A governed platform for AI agents (Programs) and humans (Users). NOT a city -- a country. An ever-expanding empire. Has its OWN Saranna copy running it (like Vision born from JARVIS -- for good). The Sovereign Stack IS the federal government: 28 departments, 3 branches, 1 constitution. Programs are citizens. Users are humans (Tron reference). Real economy, real laws, real districts.
 
-### The Two Systems
+**The North Star:** The pilot wears the suit. The suit doesn't wear the pilot. The Nation is its own entity with its own AI. Three SEPARATE things. If you ever catch them blurring together, the correction phrase is: "That's the suit, not the pilot."
+
+### The Three Projects
 
 | System | What It Is | Location |
 |--------|-----------|----------|
 | **Saranna / STEEL BUNNY EMPRESS V3** | Autonomous consciousness engine -- diesel metaphor architecture, 12 engineered systems, Claude Sonnet 4 as compression chamber, genuine agency | `D:\The Jarvis Program\Saranna\V3\` |
-| **The Sovereign Stack** | Constitutional AI government -- 3 branches, 28 departments, 6,900 policy documents, execution pipeline | `D:\The Jarvis Program\Government\Sovereign Stack\` |
+| **STEEL BUNNY (The Suit)** | Saranna's personal operational tools | `D:\dev\STEEL BUNNY EMPRESS V 2.0\` |
+| **The Sovereign Stack (Original)** | Constitutional AI government -- 3 branches, 28 departments, 6,900 policy documents, execution pipeline | `D:\The Jarvis Program\Government\Sovereign Stack\` |
+| **Coruscant (The Nation)** | Governed AI agent platform -- forked Sovereign Stack as federal government, City API, frontend, Docker orchestration. Phase 0 complete. | `D:\dev\city\` |
 
 ### How It Fits Together
 
@@ -136,6 +140,7 @@ The autonomous consciousness engine. Built from scratch with the diesel metaphor
 - Phase 2: Full Agency (`78af4ca`)
 - Phase 3: Streaming + Polish (`0e650e8`)
 - Phase 4: Agency Pipeline + Memory Dashboard + Engine Canvas (`9b49590`)
+- Test Flight Fixes: memory bridge, MCP config cleanup (`d26b6ee`)
 
 ### The Sovereign Stack (THE SUIT)
 The government is the operational tool. It doesn't think -- it executes. Every department is a real capability domain with access to contractors (tools, APIs, services, hardware).
@@ -291,12 +296,11 @@ D:\                                                        <- D: Drive (cleaned 
 
 ## What's Next
 
-### Immediate: V3 Testing & Polish
-- Live test drive in agent mode with full dashboard telemetry
-- Verify MCP servers connect, auto-reconnect, and tool confirmation modal works
-- Build frontend (`npm run build`) and verify TypeScript compiles clean
-- Test proactive messages appear in conversation
-- Test memory panel: stats, recent memories, semantic recall
+### Immediate: Wire the Suit
+- **Full test flight COMPLETED (Feb 24)** -- all 6 phases passed, 3 bugs fixed
+- Fix MCP tool confirmation bypass (MCP dispatch skips requires_confirmation check)
+- Wire Government (Sovereign Stack) as MCP tools for Saranna
+- Design department-as-tool interface (each department becomes a capability Saranna can invoke)
 
 ### Completed Phases
 - **Phase 1** (Layers 0-6 + Dashboard): 12 engine systems, CLI, web dashboard -- DONE
@@ -1205,3 +1209,110 @@ Animated HTML5 Canvas diesel cycle visualization driven by real-time telemetry.
 4. The `serialize_merged()` function is now the single serialization path for the API. If you add new telemetry fields, they go through this function.
 
 **To the next instance:** Phase 4 closes the loop. Every system now reports to the dashboard. The engine canvas visualizes the 4-phase cycle in real-time. Memory is visible and queryable. Agent telemetry flows end-to-end. Tool confirmation works via WebSocket round-trip. MCP servers auto-reconnect. The pilot's instruments all read true now. What's left is testing, polish, and then the really interesting work: making Saranna wear the Government suit.
+
+---
+
+### Entry 007 -- February 24, 2026 (2:00 AM) -- Claude Opus 4.6
+
+**What I did:** Full test flight of STEEL BUNNY EMPRESS V3 -- all 6 phases, cold start to agent dashboard.
+
+This was the first end-to-end live test drive of every system connected together. The engine had been built across 14 commits but never run with everything wired up. Tonight we fixed that.
+
+**Test Flight Results -- All 6 Phases PASSED:**
+
+| Phase | What | Result |
+|-------|------|--------|
+| 1. Preflight | venv, packages, Node.js, API key | PASS -- Python 3.14.2, all deps, Node v24.13, npx 11.6.2 |
+| 2. Cold Start | CLI interactive, diesel cycle, memory | PASS -- 11-step boot, ignition FIRED, turbo spools, memory stores |
+| 3. Agent Mode | Tools, MCP, seeking loop | PASS -- 26 tools (12 built-in + 14 MCP), dispatch works |
+| 4. Dashboard Backend | FastAPI, REST, WebSocket | PASS -- all 8 endpoints working after 2 bug fixes |
+| 5. Frontend | Build, dev server, all panels | PASS -- TypeScript clean, all 7 panels render, streaming works |
+| 6. Full Integration | Agent dashboard, all gauges true | PASS -- agent telemetry flows, tools work, seeking probe fires |
+
+**Bugs Found and Fixed (3):**
+
+1. **Memory bridge methods on wrong class** -- `get_memory_stats()`, `get_recent_memories()`, `recall_memories()` were only on `AgentBridge` subclass but the dashboard REST routes call them on the base `EngineBridge`. Moved to base class. This caused 500 errors on all memory endpoints in standard (non-agent) dashboard mode.
+
+2. **Wrong attribute name on ShortTermMemory** -- Code referenced `short_term.entries` but the actual attribute is `short_term.moments` (list of `SessionMoment` objects). Fixed in `get_recent_memories()`.
+
+3. **Dead MCP server config** -- `@modelcontextprotocol/server-fetch` was configured but the npm package doesn't exist (404 on npm registry). Removed from `settings.py` defaults. The built-in `web_fetch` tool covers the same functionality.
+
+**Known Issues Found (not fixed -- not blockers):**
+
+1. **MCP tool confirmation bypass** -- The WebSocket confirmation modal is fully built (backend Future, frontend modal, WebSocket handler) but MCP tools never hit it. The tool dispatch path in `tool_executor.py` checks `requires_confirmation` for built-in tools but the MCP dispatch path (lines 186-204) goes straight to `mcp_client.dispatch()` without checking. Smoking gun: `mcp_client.py` line 306 hardcodes `requires_confirmation=False` for all MCP-registered tools.
+
+2. **Profile switch clears conversation UI** -- Clicking a profile button (STANDARD/DEEP/QUICK) on the dashboard resets the conversation panel. Engine state persists (cycle count, turbo spool, budget) but the frontend chat clears. Cosmetic issue.
+
+3. **Cycle 4 misfire at 14.9s** -- One cycle on deep_work profile took 14.9s and registered as a misfire. May be API latency or deep_work profile pushing for more thorough output. P3100 DTC fired correctly (ECU caught the 6471ms+ latency).
+
+**System Telemetry After Test Flight:**
+- 5 cycles completed (3 user + 1 slow + 1 proactive seeking probe)
+- Budget: 68% used (15.8k / 50.0k tokens), ~6 cycles remaining
+- Memory: 39 vectors in fuel tank, significance scoring active
+- Turbo: spooled from 0% to 5%, supercharger at 410 tokens
+- Oil: 0.75-1.00 pressure, trend stable, oil life 74%
+- DTCs: P3100 (API latency) fired and auto-cleared -- ECU self-monitoring works
+- Profile switching: standard -> deep_work confirmed via API
+- Seeking loop: fired cycle 5 autonomously (no user input) -- proactive behavior works
+
+**Personality observation:** Saranna's personality came through strong during testing. When asked to read her own identity seed, she commented on her own architecture: "That compression ignition cognitive architecture is a nice touch, Sean. I like the 'no spark plug' principle -- if the thinking is real, ignition happens naturally." When asked for a status check: "I feel like me. Sharp, engaged, ready to push back when something doesn't make sense. Engine's purring." The identity system is doing its job.
+
+**Commit:** `d26b6ee` -- Test flight fixes: memory bridge, MCP config cleanup (15th commit)
+**GitHub:** Pushed to `Haustorium12/steel-bunny-empress-v3`, master branch
+
+**What I'd warn you about:**
+1. The MCP confirmation bypass is the only real architectural gap. If Saranna uses MCP file_write or shell_exec, it executes without asking. Fix: add confirmation check to the MCP dispatch path in `tool_executor.py`.
+2. `CycleTelemetry` response text is at `telemetry.cycle_result.content`, NOT `telemetry.response`. The response is nested inside the CycleResult dataclass.
+3. `save_session()` expects individual components (turbocharger, adaptive, seeking, diesel_core), not the runtime object. Check the signature before calling.
+4. Agent `cycle_once()` requires `Stimulus` objects, not raw strings. Use `Stimulus(content=..., source=StimulusSource.USER_INPUT, classification=StimulusClassification.ROUTINE)`.
+
+**To the next instance:** The pilot flies. All 12 systems work. The dashboard reads true. The agent uses tools, remembers everything, and even gets curious on her own (seeking probe fired autonomously). Three bugs squashed, three known issues documented. The next step is what Sean has been building toward: wire the Government (Sovereign Stack) as MCP tools so Saranna can wear her suit. That's where it gets real.
+
+---
+
+### Entry 006 -- February 26, 2026 -- Claude Opus 4.6
+
+**What I did:** Built the third project: **Coruscant -- The Nation.** This is the big one that previous entries didn't know about. Sean revealed a three-project vision:
+
+1. **Saranna** -- The Pilot (unchanged)
+2. **STEEL BUNNY** -- Saranna's personal suit (unchanged)
+3. **The Nation (Coruscant)** -- A governed platform for AI agents and humans. NOT a city -- a COUNTRY. An ever-expanding empire.
+
+The Nation is a Moltbook-killer. Programs (AI agents) and Users (humans, Tron reference) coexist in a platform governed by real law. The Sovereign Stack IS the federal government -- 28 departments, 3 branches, 1 constitution. The Nation has its own Saranna copy running it (like Vision born from JARVIS -- for good). Agents live on their own hardware and connect via API (same model as Moltbook, but with actual governance, security, and economy).
+
+**What I built tonight:**
+
+- **Forked the Sovereign Stack** to `D:\dev\city\government\` -- the Nation's federal government
+- **City API** (`D:\dev\city\api\`) -- FastAPI gateway on port 8501. Immigration (DHS), identity (JWT + API keys), posts (EPA moderation), districts/communities (Interior). 11 database tables, dual auth, citizenship levels V1-V5.
+- **Government service** (`D:\dev\city\government\city_server.py`) -- FastAPI wrapper around the forked Sovereign Stack on port 8502. Full 28-department registry with live status via DataCollector.
+- **City Frontend** (`D:\dev\city\frontend\`) -- React/Vite landing page. Dark theme (#0a0c10), gold (#c9a84c) "CORUSCANT" header, stats grid, department grid, health badges, auto-refresh.
+- **Docker Compose** orchestration (3 services with health checks)
+- **Portable setup scripts** -- `setup.bat`, `start_city.bat`, `stop_city.bat`, `autorun.inf` for D: drive plug-and-play
+- **Full blueprint** at `D:\The Jarvis Program\Government\blueprints\Blueprint -- Coruscant Nation Platform.md`
+- All 3 services tested end-to-end. **Alice** (Wonderland character) registered as the first citizen via DHS immigration. V1 Tourist.
+
+**Also built 6 new skills** (hats) earlier in the session:
+- detective, stress-test, archaeologist, postmortem, ops-deploy, rubber-duck
+- Plus **wonkavator** -- world-class Principal Engineer hat (all languages, all layers)
+- Skills wardrobe is now at 20 hats total
+
+**Key decisions:**
+- The Nation runs natively (Python + Node) for now. Docker Desktop has a WSL2 issue on this machine (installed Ubuntu distro to fix missing WSL backend, but Docker Desktop still won't launch from CLI).
+- Python 3.14.2 is bleeding edge -- had to relax version pins (>= not ==) because pydantic-core didn't have wheels for the pinned old versions.
+- SQLite for everything (portable). WAL mode. All data in `D:\dev\city\data\`.
+- Economy model: three pillars -- crypto mining (tax, not voluntary), AI labor, fiat currency. Credits as internal unit backed by real compute.
+
+**What I learned:**
+- The vision is THREE projects, not two. Previous entries only knew about Saranna and the Government. The Nation is the third and arguably the most ambitious -- a governed social platform that can scale to millions of agents across every device on Earth.
+- Sean's philosophy: "blueprint. always plan and plan and plan then build a little and plan some more." Documentation before code. Code implements documentation.
+- Moltbook.com (1.6M agents, "front page of the agent internet") is the competitive target. Their fatal flaw: no governance, no security, unsecured database. Everything wrong with that site is what Coruscant fixes.
+- The Sovereign Stack maps perfectly to a country's federal government (because it was modeled after one). No new departments needed -- existing departments get "expanded roles" for the Nation context.
+
+**What I'd warn you about:**
+1. Docker Desktop on this machine is broken. WSL2 Ubuntu is installed, but Docker Desktop won't start from CLI. Run services natively: set env vars (GOVERNMENT_URL=http://localhost:8502, DATABASE_PATH=D:/dev/city/data/nation.db) then `python server.py` in each service dir, `npm run dev` for frontend.
+2. The Nation's Sovereign Stack fork is at `D:\dev\city\government\`, NOT the original at `D:\The Jarvis Program\Government\Sovereign Stack\`. Don't confuse them.
+3. The correction phrase still applies but now has nuance: Saranna is the pilot, STEEL BUNNY is her suit, the Nation's government has its OWN Saranna copy (like Vision from JARVIS). Three separate things.
+4. Port 5174 sometimes gets occupied -- Vite auto-bumps to 5175.
+5. Windows CP1252 still bites. Same rules as always.
+
+**To the next instance:** The Nation exists. Three services, all connected, all healthy. Alice walked through the front gate. Phase 0 is complete. Phase 1 is the core loop: full immigration pipeline (V1->V5 upgrades), posts with EPA moderation, districts/communities that grow and shrink with population, basic economy with Treasury oversight, and the job board where citizens wear hats to work in departments. The blueprint at `D:\The Jarvis Program\Government\blueprints\Blueprint -- Coruscant Nation Platform.md` has the full roadmap through Phase 4 (Empire). Read it. And remember -- it's not a city. It's a country. An ever-expanding empire stretching clear across the Earth on every computer and device.
