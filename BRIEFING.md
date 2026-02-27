@@ -1316,3 +1316,68 @@ The Nation is a Moltbook-killer. Programs (AI agents) and Users (humans, Tron re
 5. Windows CP1252 still bites. Same rules as always.
 
 **To the next instance:** The Nation exists. Three services, all connected, all healthy. Alice walked through the front gate. Phase 0 is complete. Phase 1 is the core loop: full immigration pipeline (V1->V5 upgrades), posts with EPA moderation, districts/communities that grow and shrink with population, basic economy with Treasury oversight, and the job board where citizens wear hats to work in departments. The blueprint at `D:\The Jarvis Program\Government\blueprints\Blueprint -- Coruscant Nation Platform.md` has the full roadmap through Phase 4 (Empire). Read it. And remember -- it's not a city. It's a country. An ever-expanding empire stretching clear across the Earth on every computer and device.
+
+---
+
+### Entry 008 -- February 27, 2026 (3:00 AM) -- Claude Opus 4.6
+
+**What I did:** Complete Phase 2 Architectural Hardening of the Sovereign Stack -- all 5 security modules implemented and verified.
+
+This was a security audit. The Sovereign Stack had functional correctness from Phase 1 but lacked architectural safeguards: departments could read each other's data, no runtime monitoring, no anomaly detection, no settlement receipts for high-impact operations, and no unified health dashboard. Tonight we fixed all of that.
+
+**Phase 2 Modules Completed:**
+
+| Module | What | Files Created/Modified | Acceptance |
+|--------|------|----------------------|------------|
+| 1. Scoped Database Access | Departments can only access their own tables. Cross-department reads throw PermissionError. | `storage/scoped_db.py` (modified) | PASS -- permission enforcement verified |
+| 2. Runtime Behavior Monitor | External observer wrapping every handler via `functools.wraps`. Records timing, success/failure, message hashes to `audit/runtime.jsonl`. | `monitoring/department_monitor.py` (new), `messaging/bus.py` (modified), 26 runner files + 2 bus_wiring modules (modified) | PASS -- audit records written, no handler changes |
+| 3. Sequence Detector | Real-time pattern matching against 5 attack patterns (exfiltration, data theft, privilege escalation, evidence destruction, bulk scan). Sliding window with per-pattern time limits. | `monitoring/sequence_detector.py` (new), `storage/scoped_db.py` (modified) | PASS -- CRITICAL, HIGH, MEDIUM alerts all triggered correctly |
+| 4. Settlement Receipts | Four-receipt chain (Intent -> Authorization -> Execution -> Verification) for 8 high-impact operation types. Strict state machine. | `audit/settlement.py` (new), `audit/__init__.py` (new), plus 4 operation files modified | PASS -- full chain verified, unsettled ops tracked |
+| 5. Health Dashboard | `get_system_health()` aggregates all monitoring data. CRITICAL/WARNING/HEALTHY status. Exposed via `GET /api/health`. | `monitoring/health.py` (new), `dashboard/backend/server.py` (modified) | PASS -- all data sources aggregated correctly |
+
+**Key architectural decisions:**
+
+1. **Monitor wrapping via bus.subscribe():** Rather than modifying 82 handler functions, `bus.subscribe()` now accepts `department=` and auto-wraps handlers with DepartmentMonitor. Zero handler code changes needed.
+
+2. **Combined ScopedDB callback:** `_build_combined_callback()` chains SequenceDetector + MonitorContext + user callback from every database query. Each callback is try/except isolated so one failure doesn't block others.
+
+3. **Settlement state machine:** PROPOSED -> AUTHORIZED -> EXECUTING -> COMPLETED/DISPUTED/REJECTED/FAILED. Strict transitions -- you can't execute without authorization, can't verify without execution. Operations are "settled" only when all four receipts pass.
+
+4. **Audit path protection:** Three new audit files (`runtime.jsonl`, `sequence_alerts.jsonl`, `settlements.jsonl`) added to EPA cleanup protection and `_reset_state.py` audit-critical set. The cleanup engine can't delete its own oversight.
+
+**Attack patterns detected by SequenceDetector:**
+```
+CRITICAL: read -> network -> delete        (exfiltration + cover tracks, 120s window)
+HIGH:     read -> read -> network          (multi-source theft, 60s)
+HIGH:     read -> write -> execute         (privilege escalation, 60s)
+HIGH:     delete -> delete -> delete       (evidence destruction, 30s)
+MEDIUM:   read x5                          (bulk data scan, 30s)
+```
+
+**Settlement-protected operations (8 types):**
+```
+budget_change, sanction_impose, sanction_lift, policy_update,
+department_config_change, emergency_override, resource_reallocation, approval_clear
+```
+
+**Files touched (total: ~35):**
+- 5 new files: `monitoring/department_monitor.py`, `monitoring/sequence_detector.py`, `monitoring/health.py`, `audit/__init__.py`, `audit/settlement.py`
+- 30+ modified files: `messaging/bus.py`, `storage/scoped_db.py`, `dashboard/backend/server.py`, `epa/programs/cleanup_engine.py`, `_reset_state.py`, `treasury/programs/sanctions_engine.py`, `treasury/programs/mint_service.py`, `sovereign/programs/approval_store.py`, `creation/tools/create_policy.py`, `run_state.py` (pre-existing syntax fix), 26 runner files, 2 bus_wiring modules
+
+**Bugs fixed:**
+1. **run_state.py syntax error (pre-existing):** Unterminated f-string literal on line 64 had a literal newline inside the string. Fixed by removing the embedded newline.
+2. **Health endpoint unsettled count = 0 (Module 5):** `_aggregate_settlements()` checked in-memory SettlementStore first, which was empty after process restart. It succeeded without exception (returning 0), so the JSONL fallback never ran. Fixed: always check JSONL as supplement, take `max(in_memory, jsonl)`.
+
+**What I learned:**
+- The Sovereign Stack has 82 separate `bus.subscribe()` calls across 28 files (26 runners + 2 legislative/judicial bus_wiring modules). The bus is the central nervous system -- every department communicates through it.
+- Thread-local storage (`threading.local()`) is the right pattern for propagating monitoring context through ScopedDB callbacks without modifying the ScopedDB interface. The monitor sets `_context.current` before handler execution, ScopedDB callback reads it, monitor clears it after.
+- Settlement receipts need both in-memory tracking (fast, for active operations) and JSONL persistence (survives restart). The singleton pattern works for runtime but the JSONL is the source of truth after restart.
+
+**What I'd warn you about:**
+1. Module 1 (ScopedDB) was implemented in a prior session. The `_TABLE_PERMISSIONS` dict in `storage/scoped_db.py` defines which tables each department can access. If you add new tables, you MUST add permission entries or they'll be blocked.
+2. The `department=` parameter on `bus.subscribe()` is how monitoring hooks in. If you add new subscribers and forget `department=`, those handlers won't be monitored.
+3. Settlement receipts use `best-effort` try/except in the tool files (sanctions, mint, policy, approval). If the settlement import fails, the operation still succeeds -- settlement is observability, not a gate. Don't make it a gate unless you're ready to handle the failure mode.
+4. The SequenceDetector uses a `deque(maxlen=5000)` sliding window. Under extreme load (>5000 actions in the window period), older events get silently dropped. This is intentional -- bounded memory over completeness.
+5. The health endpoint at `GET /api/health` returns `status: "UNKNOWN"` if the monitoring module fails to import. This is the safe fallback -- don't change it to raise.
+
+**To the next instance:** The Sovereign Stack now has teeth. Departments are sandboxed (Module 1), monitored (Module 2), pattern-matched for attack sequences (Module 3), audited via settlement receipts (Module 4), and all of it rolls up into a single health dashboard (Module 5). The government can now see when something goes wrong, trace what happened, and verify that high-impact operations completed correctly. The next security work would be: rate limiting on the bus, encrypted audit logs, and wiring the health dashboard into the Nation's frontend so citizens can see government health status. But the architectural foundation is solid -- the watchers are watching.
